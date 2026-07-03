@@ -251,7 +251,7 @@ def dashboard(request):
 @login_required
 def profile(request):
     if request.method == 'POST':
-        form = UserUpdateForm(request.POST, instance=request.user)
+        form = UserUpdateForm(request.POST, request.FILES, instance=request.user)
         if form.is_valid():
             form.save()
             messages.success(request, 'Profile updated successfully!')

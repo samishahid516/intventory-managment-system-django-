@@ -13,6 +13,7 @@ class User(AbstractUser):
     role = models.CharField(max_length=20, choices=ROLE_CHOICES, default='worker', db_index=True)
     phone = models.CharField(max_length=15, blank=True)
     address = models.TextField(blank=True)
+    profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True)
     last_login_ip = models.GenericIPAddressField(null=True, blank=True)
     is_verified = models.BooleanField(default=False)
     
