@@ -1,0 +1,92 @@
+{% extends 'base.html' %}
+
+{% block title %}Sales Orders{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Sales Orders</h1>
+            <p class="text-muted">View all sales orders</p>
+        </div>
+        <div class="col text-end">
+            {% if user.role == 'admin' or user.role == 'sale_manager' %}
+            <a href="{% url 'sales:sale_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Sale
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="salesTable">
+                    <thead>
+                        <tr>
+                            <th>Order #</th>
+                            <th>Customer</th>
+                            <th>Total</th>
+                            <th>Status</th>
+                            <th>Payment</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for order in orders %}
+                        <tr>
+                            <td><strong>{{ order.order_number }}</strong></td>
+                            <td>{{ order.customer_name }}</td>
+                            <td>PKR {{ order.total_amount|floatformat:2 }}</td>
+                            <td>
+                                <span class="badge bg-{% if order.status == 'pending' %}warning{% elif order.status == 'processing' %}info{% elif order.status == 'delivered' %}success{% elif order.status == 'cancelled' %}danger{% else %}secondary{% endif %}">
+                                    {{ order.get_status_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if order.payment_status == 'paid' %}success{% elif order.payment_status == 'pending' %}warning{% else %}danger{% endif %}">
+                                    {{ order.get_payment_status_display }}
+                                </span>
+                            </td>
+                            <td>{{ order.order_date|date:"M d, Y" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'sales:manager_order_detail' order.id %}" class="btn btn-info" title="View Details">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if user.role == 'admin' or user.role == 'sale_manager' %}
+                                    <a href="{% url 'sales:manager_update_order' order.id %}" class="btn btn-warning" title="Edit Order">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No orders found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#salesTable').DataTable({
+            "order": [[5, "desc"]],
+            "pageLength": 25,
+            "language": {
+                "search": "Search orders:",
+                "lengthMenu": "Show _MENU_ orders per page"
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

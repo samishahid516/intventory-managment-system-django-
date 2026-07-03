@@ -1,0 +1,157 @@
+{% extends 'base.html' %}
+
+{% block title %}Tasks - Task Management{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Task Management</h1>
+            <p class="text-muted">View and manage all tasks</p>
+        </div>
+        <div class="col text-end">
+            {% if user.role == 'admin' or user.role == 'sale_manager' %}
+            <a href="{% url 'tasks:task_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Create Task
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Tasks</h6>
+                    <h2 class="mb-0">{{ total_tasks }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6 class="card-title">Pending</h6>
+                    <h2 class="mb-0">{{ pending_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">In Progress</h6>
+                    <h2 class="mb-0">{{ in_progress_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Completed</h6>
+                    <h2 class="mb-0">{{ completed_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filter -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-4">
+                    <label>Status</label>
+                    <select name="status" class="form-select">
+                        <option value="all">All Status</option>
+                        {% for key, value in status_choices %}
+                        <option value="{{ key }}" {% if status_filter == key %}selected{% endif %}>
+                            {{ value }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filter</button>
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary w-100">Clear Filter</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task List -->
+    <div class="card">
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-hover" id="taskTable">
+                    <thead>
+                        <tr>
+                            <th>Title</th>
+                            <th>Type</th>
+                            <th>Assigned To</th>
+                            <th>Priority</th>
+                            <th>Status</th>
+                            <th>Due Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for task in tasks %}
+                        <tr>
+                            <td><strong>{{ task.title }}</strong></td>
+                            <td>{{ task.get_task_type_display }}</td>
+                            <td>{{ task.assigned_to.username }}</td>
+                            <td>
+                                <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% elif task.priority == 'medium' %}info{% else %}secondary{% endif %}">
+                                    {{ task.get_priority_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <span class="badge bg-{% if task.status == 'pending' %}warning{% elif task.status == 'in_progress' %}info{% elif task.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                    {{ task.get_status_display }}
+                                </span>
+                                {% if task.is_overdue %}
+                                <span class="badge bg-danger">Overdue</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ task.due_date|date:"M d, Y"|default:"-" }}</td>
+                            <td>
+                                <div class="btn-group btn-group-sm">
+                                    <a href="{% url 'tasks:task_detail' task.id %}" class="btn btn-info" title="View">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if user.role == 'admin' or user.role == 'sale_manager' or task.assigned_to == user %}
+                                    <a href="{% url 'tasks:task_update' task.id %}" class="btn btn-warning" title="Update">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">No tasks found</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    $(document).ready(function() {
+        $('#taskTable').DataTable({
+            "order": [[5, "desc"]],
+            "pageLength": 25,
+            "language": {
+                "search": "Search tasks:",
+                "lengthMenu": "Show _MENU_ tasks per page"
+            }
+        });
+    });
+</script>
+{% endblock %}
+{% endblock %}

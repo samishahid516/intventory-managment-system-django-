@@ -1,0 +1,191 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Products - Bike Inventory{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Products / Bikes</h1>
+            <p class="text-muted">Manage your bike inventory</p>
+        </div>
+        <div class="col text-end">
+            {% if user.role == 'admin' %}
+            <a href="{% url 'products:product_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add New Bike
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-3">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Products</h6>
+                    <h2 class="mb-0">{{ total_products }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">In Stock</h6>
+                    <h2 class="mb-0">{{ in_stock_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-warning text-dark">
+                <div class="card-body">
+                    <h6 class="card-title">Low Stock</h6>
+                    <h2 class="mb-0">{{ low_stock_count }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card bg-danger text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Out of Stock</h6>
+                    <h2 class="mb-0">{{ out_of_stock_count }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label>Search</label>
+                    <input type="text" name="search" class="form-control" placeholder="Search by name, brand..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-3">
+                    <label>Category</label>
+                    <select name="category" class="form-select">
+                        <option value="">All Categories</option>
+                        {% for category in categories %}
+                        <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:"s" %}selected{% endif %}>
+                            {{ category.name }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="available" {% if selected_status == 'available' %}selected{% endif %}>Available</option>
+                        <option value="out_of_stock" {% if selected_status == 'out_of_stock' %}selected{% endif %}>Out of Stock</option>
+                        <option value="discontinued" {% if selected_status == 'discontinued' %}selected{% endif %}>Discontinued</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label>Stock</label>
+                    <select name="stock" class="form-select">
+                        <option value="">All Stock</option>
+                        <option value="in" {% if selected_stock == 'in' %}selected{% endif %}>In Stock</option>
+                        <option value="low" {% if selected_stock == 'low' %}selected{% endif %}>Low Stock</option>
+                        <option value="out" {% if selected_stock == 'out' %}selected{% endif %}>Out of Stock</option>
+                    </select>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">Apply Filters</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Products Grid -->
+    <div class="row">
+        {% for product in products %}
+        <div class="col-md-3 mb-4">
+            <div class="card h-100 shadow-sm">
+                {% if product.image %}
+                <img src="{{ product.image.url }}" class="card-img-top" alt="{{ product.name }}" style="height: 200px; object-fit: cover;">
+                {% else %}
+                <div class="card-img-top bg-light d-flex align-items-center justify-content-center" style="height: 200px;">
+                    <i class="fas fa-bicycle fa-4x text-muted"></i>
+                </div>
+                {% endif %}
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="card-title mb-1">{{ product.name }}</h5>
+                        <span class="badge bg-{% if product.stock_status == 'In Stock' %}success{% elif product.stock_status == 'Low Stock' %}warning{% else %}danger{% endif %}">
+                            {{ product.stock_status }}
+                        </span>
+                    </div>
+                    <p class="card-text text-muted small">{{ product.brand|default:"No brand" }} | {{ product.category.name|default:"No category" }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="h5 mb-0">PKR {{ product.price }}</span>
+                        <span class="badge bg-secondary">{{ product.quantity }} units</span>
+                    </div>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="btn-group w-100">
+                        <a href="{% url 'products:product_detail' product.slug %}" class="btn btn-sm btn-info">
+                            <i class="fas fa-eye"></i> View
+                        </a>
+                        {% if user.role == 'admin' %}
+                        <a href="{% url 'products:product_update' product.slug %}" class="btn btn-sm btn-warning">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'products:product_delete' product.slug %}" class="btn btn-sm btn-danger">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> No products found. 
+                {% if user.role == 'admin' %}
+                <a href="{% url 'products:product_create' %}">Add your first product</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Pagination -->
+    {% if categories.has_other_pages %}
+    <nav aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if categories.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ categories.previous_page_number }}">Previous</a>
+            </li>
+            {% endif %}
+            {% for num in categories.paginator.page_range %}
+            <li class="page-item {% if categories.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if categories.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ categories.next_page_number }}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Auto-submit form on filter change
+    document.querySelectorAll('select').forEach(function(select) {
+        select.addEventListener('change', function() {
+            this.closest('form').submit();
+        });
+    });
+</script>
+{% endblock %}

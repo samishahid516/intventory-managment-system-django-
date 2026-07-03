@@ -1,0 +1,160 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Worker Dashboard{% endblock %}
+{% block page_title %}Worker Dashboard{% endblock %}
+
+{% block content %}
+<!-- Overdue Alert -->
+{% if overdue_tasks > 0 %}
+<div class="alert alert-danger d-flex align-items-center mb-4">
+    <i class="fas fa-exclamation-circle fs-4 me-2"></i>
+    <div>You have <strong>{{ overdue_tasks }}</strong> overdue tasks!
+    <a href="{% url 'tasks:task_list' %}?status=pending" class="alert-link ms-1">View them here</a></div>
+</div>
+{% endif %}
+
+<!-- Stats -->
+<div class="row g-3 mb-4">
+    <div class="col-md-3">
+        <div class="card stat-card bg-primary text-white">
+            <div class="card-body">
+                <div class="stat-icon bg-white bg-opacity-25"><i class="fas fa-tasks text-white"></i></div>
+                <div class="stat-value">{{ total_tasks|default:"0" }}</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-warning text-dark">
+            <div class="card-body">
+                <div class="stat-icon bg-dark bg-opacity-10"><i class="fas fa-hourglass-half text-dark"></i></div>
+                <div class="stat-value">{{ pending_tasks|default:"0" }}</div>
+                <div class="stat-label">Pending</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-info text-white">
+            <div class="card-body">
+                <div class="stat-icon bg-white bg-opacity-25"><i class="fas fa-spinner text-white"></i></div>
+                <div class="stat-value">{{ in_progress_tasks|default:"0" }}</div>
+                <div class="stat-label">In Progress</div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card stat-card bg-success text-white">
+            <div class="card-body">
+                <div class="stat-icon bg-white bg-opacity-25"><i class="fas fa-check-double text-white"></i></div>
+                <div class="stat-value">{{ completed_tasks_count|default:"0" }}</div>
+                <div class="stat-label">Completed</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-3">
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="fas fa-clipboard-list me-2"></i>My Tasks</span>
+                <a href="{% url 'tasks:task_list' %}" class="btn btn-sm btn-primary">View All</a>
+            </div>
+            <div class="card-body">
+                {% if assigned_tasks %}
+                <div class="list-group list-group-flush">
+                    {% for task in assigned_tasks %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h6 class="mb-1">{{ task.title }}</h6>
+                                <small class="text-muted">
+                                    {{ task.task_type }} —
+                                    <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% elif task.priority == 'medium' %}info{% else %}secondary{% endif %}">{{ task.get_priority_display }}</span>
+                                    {% if task.is_overdue %}<span class="badge bg-danger">Overdue</span>{% endif %}
+                                </small>
+                            </div>
+                            {% if task.id %}
+                            <a href="{% url 'tasks:task_update' task.id %}" class="btn btn-sm btn-warning"><i class="fas fa-edit"></i></a>
+                            {% endif %}
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No tasks assigned.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="fas fa-exclamation-triangle text-danger me-2"></i>Low Stock Alerts</div>
+            <div class="card-body">
+                {% if low_stock %}
+                <div class="list-group list-group-flush">
+                    {% for product in low_stock %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <div><strong>{{ product.name }}</strong><br><small class="text-muted">Min: {{ product.min_stock_level }}</small></div>
+                            <span class="badge bg-danger h-50">{{ product.quantity }} left</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-success mb-0"><i class="fas fa-check-circle"></i> All items well stocked</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header"><i class="fas fa-clock me-2"></i>Pending Orders</div>
+            <div class="card-body">
+                {% if pending_orders %}
+                <div class="list-group list-group-flush">
+                    {% for order in pending_orders %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ order.order_number }}</strong><br>
+                                <small class="text-muted">{{ order.customer_name }}</small>
+                            </div>
+                            <span class="badge bg-warning h-50">{{ order.get_status_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No pending orders.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card-header"><i class="fas fa-bug me-2"></i>Recent Issues</div>
+            <div class="card-body">
+                {% if issues %}
+                <div class="list-group list-group-flush">
+                    {% for issue in issues %}
+                    <div class="list-group-item px-0">
+                        <div class="d-flex justify-content-between">
+                            <div>
+                                <strong>{{ issue.get_issue_type_display }}</strong><br>
+                                <small class="text-muted">{{ issue.product.name }}</small>
+                            </div>
+                            <span class="badge bg-{% if issue.severity == 'critical' %}danger{% elif issue.severity == 'high' %}warning{% else %}info{% endif %} h-50">{{ issue.get_severity_display }}</span>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p class="text-muted text-center mb-0">No recent issues.</p>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+{% load crispy_forms_tags %}
+
+{% block title %}{{ title }} - Products{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <div class="card">
+                <div class="card-header">
+                    <h3 class="mb-0">{{ title }}</h3>
+                </div>
+                <div class="card-body">
+                    <form method="post" enctype="multipart/form-data">
+                        {% csrf_token %}
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.name|as_crispy_field }}
+                                {{ form.description|as_crispy_field }}
+                                {{ form.category|as_crispy_field }}
+                                {{ form.supplier|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.price|as_crispy_field }}
+                                {{ form.cost_price|as_crispy_field }}
+                                {{ form.quantity|as_crispy_field }}
+                                {{ form.min_stock_level|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <hr>
+
+                        <div class="row">
+                            <div class="col-md-3">
+                                {{ form.brand|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.model|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.color|as_crispy_field }}
+                            </div>
+                            <div class="col-md-3">
+                                {{ form.year|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        <div class="row">
+                            <div class="col-md-6">
+                                {{ form.status|as_crispy_field }}
+                            </div>
+                            <div class="col-md-6">
+                                {{ form.is_featured|as_crispy_field }}
+                            </div>
+                        </div>
+
+                        {{ form.image|as_crispy_field }}
+
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-3">
+                            <a href="{% url 'products:product_list' %}" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Product
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

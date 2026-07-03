@@ -1,0 +1,113 @@
+{% extends 'base.html' %}
+
+{% block title %}Task Details{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Task Details</h1>
+            <p class="text-muted">View task information</p>
+        </div>
+        <div class="col text-end">
+            <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary">
+                <i class="fas fa-arrow-left"></i> Back to Tasks
+            </a>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-md-8">
+                    <h3>{{ task.title }}</h3>
+                    <p class="text-muted">Created: {{ task.created_at|date:"M d, Y H:i" }}</p>
+                    
+                    <hr>
+                    
+                    <h5>Description</h5>
+                    <p>{{ task.description|linebreaks }}</p>
+                    
+                    <hr>
+                    
+                    <div class="row">
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Task Type:</strong></td>
+                                    <td>{{ task.get_task_type_display }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Priority:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if task.priority == 'urgent' %}danger{% elif task.priority == 'high' %}warning{% elif task.priority == 'medium' %}info{% else %}secondary{% endif %}">
+                                            {{ task.get_priority_display }}
+                                        </span>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Status:</strong></td>
+                                    <td>
+                                        <span class="badge bg-{% if task.status == 'pending' %}warning{% elif task.status == 'in_progress' %}info{% elif task.status == 'completed' %}success{% else %}secondary{% endif %}">
+                                            {{ task.get_status_display }}
+                                        </span>
+                                        {% if task.is_overdue %}
+                                        <span class="badge bg-danger">Overdue</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="col-md-6">
+                            <table class="table table-sm">
+                                <tr>
+                                    <td><strong>Assigned To:</strong></td>
+                                    <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Assigned By:</strong></td>
+                                    <td>{{ task.assigned_by.get_full_name|default:task.assigned_by.username }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Due Date:</strong></td>
+                                    <td>{{ task.due_date|date:"M d, Y H:i"|default:"Not set" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Started:</strong></td>
+                                    <td>{{ task.started_at|date:"M d, Y H:i"|default:"Not started" }}</td>
+                                </tr>
+                                <tr>
+                                    <td><strong>Completed:</strong></td>
+                                    <td>{{ task.completed_at|date:"M d, Y H:i"|default:"Not completed" }}</td>
+                                </tr>
+                            </table>
+                        </div>
+                    </div>
+                    
+                    {% if task.notes %}
+                    <hr>
+                    <h5>Notes</h5>
+                    <p>{{ task.notes|linebreaks }}</p>
+                    {% endif %}
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="card bg-light">
+                        <div class="card-body">
+                            <h5>Quick Actions</h5>
+                            {% if user.role == 'admin' or user.role == 'sale_manager' or task.assigned_to == user %}
+                            <a href="{% url 'tasks:task_update' task.id %}" class="btn btn-warning w-100 mb-2">
+                                <i class="fas fa-edit"></i> Update Status
+                            </a>
+                            {% endif %}
+                            <a href="{% url 'tasks:task_list' %}" class="btn btn-secondary w-100">
+                                <i class="fas fa-list"></i> All Tasks
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

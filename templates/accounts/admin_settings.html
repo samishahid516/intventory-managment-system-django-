@@ -1,0 +1,78 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Settings - Admin{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1><i class="fas fa-cog"></i> System Settings</h1>
+            <p class="text-muted">Configure global system settings</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-sliders-h"></i> General Settings</h5>
+                </div>
+                <div class="card-body">
+                    <form method="post">
+                        {% csrf_token %}
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label">Company Name</label>
+                                <input type="text" name="company_name" class="form-control" value="{{ settings.company_name|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Company Email</label>
+                                <input type="email" name="company_email" class="form-control" value="{{ settings.company_email|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Company Phone</label>
+                                <input type="text" name="company_phone" class="form-control" value="{{ settings.company_phone|default:'' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Currency Symbol</label>
+                                <input type="text" name="currency_symbol" class="form-control" value="{{ settings.currency_symbol|default:'PKR' }}">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label">Company Address</label>
+                                <textarea name="company_address" class="form-control" rows="2">{{ settings.company_address|default:'' }}</textarea>
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Tax Rate (%)</label>
+                                <input type="number" name="tax_rate" class="form-control" step="0.01" value="{{ settings.tax_rate|default:'0' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label">Low Stock Threshold</label>
+                                <input type="number" name="low_stock_threshold" class="form-control" value="{{ settings.low_stock_threshold|default:'5' }}">
+                            </div>
+                        </div>
+                        <div class="mt-4">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-info-circle"></i> Information</h5>
+                </div>
+                <div class="card-body">
+                    <p class="text-muted mb-1"><strong>Company Name</strong><br>Displayed on invoices and reports</p>
+                    <p class="text-muted mb-1"><strong>Tax Rate</strong><br>Applied automatically to sale orders</p>
+                    <p class="text-muted mb-1"><strong>Low Stock Threshold</strong><br>Products below this quantity trigger alerts</p>
+                    <p class="text-muted mb-0"><strong>Currency Symbol</strong><br>Displayed throughout the system</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,136 @@
+{% extends 'base.html' %}
+
+{% block title %}Suppliers{% endblock %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row mb-4">
+        <div class="col">
+            <h1>Suppliers</h1>
+            <p class="text-muted">Manage your suppliers</p>
+        </div>
+        <div class="col text-end">
+            {% if user.role == 'admin' %}
+            <a href="{% url 'suppliers:supplier_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Add Supplier
+            </a>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Statistics -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <div class="card bg-primary text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Total Suppliers</h6>
+                    <h2 class="mb-0">{{ total_suppliers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-success text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Active Suppliers</h6>
+                    <h2 class="mb-0">{{ active_suppliers }}</h2>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card bg-info text-white">
+                <div class="card-body">
+                    <h6 class="card-title">Products</h6>
+                    <h2 class="mb-0">{{ suppliers|length }}</h2>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Search -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-10">
+                    <input type="text" name="search" class="form-control" placeholder="Search by name, email, or city..." value="{{ search_query }}">
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-primary w-100">Search</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Supplier Cards -->
+    <div class="row">
+        {% for supplier in suppliers %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100 shadow-sm">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5 class="card-title">{{ supplier.name }}</h5>
+                        <span class="badge bg-{% if supplier.is_active %}success{% else %}danger{% endif %}">
+                            {{ supplier.is_active|yesno:"Active,Inactive" }}
+                        </span>
+                    </div>
+                    <p class="card-text text-muted small">
+                        <i class="fas fa-envelope"></i> {{ supplier.email }}<br>
+                        <i class="fas fa-phone"></i> {{ supplier.phone }}<br>
+                        <i class="fas fa-map-marker-alt"></i> {{ supplier.city|default:"N/A" }}, {{ supplier.country }}
+                    </p>
+                    <p class="card-text">
+                        <span class="badge bg-info">{{ supplier.products.count }} products</span>
+                        <span class="badge bg-warning">{{ supplier.purchase_orders.count }} orders</span>
+                    </p>
+                </div>
+                <div class="card-footer bg-white">
+                    <div class="btn-group w-100" role="group">
+                        <a href="{% url 'suppliers:supplier_detail' supplier.id %}" class="btn btn-sm btn-info" title="View">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                        {% if user.role == 'admin' %}
+                        <a href="{% url 'suppliers:supplier_update' supplier.id %}" class="btn btn-sm btn-warning" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </a>
+                        <a href="{% url 'suppliers:supplier_delete' supplier.id %}" class="btn btn-sm btn-danger" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% empty %}
+        <div class="col-12">
+            <div class="alert alert-info text-center">
+                <i class="fas fa-info-circle"></i> No suppliers found.
+                {% if user.role == 'admin' %}
+                <a href="{% url 'suppliers:supplier_create' %}">Add your first supplier</a>
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if suppliers.has_other_pages %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if suppliers.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ suppliers.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Previous</a>
+            </li>
+            {% endif %}
+            {% for num in suppliers.paginator.page_range %}
+            <li class="page-item {% if suppliers.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            {% if suppliers.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ suppliers.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}">Next</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}
